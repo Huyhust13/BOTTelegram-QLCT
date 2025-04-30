@@ -5,9 +5,9 @@ const SHEET_ID = "TUY KO CNF THIẾT NHƯNG HÃY THÊM";
 const ADMIN_IDS = ["123456789", "987654321"]; // Thay các dãy số ở trong bằng id telegram của bạn
 
 function setWebhook() {
-	// URL TRIỂN KHAI
+  // URL TRIỂN KHAI
   var webAppUrl = 'https://';
-  
+
   var payload = {
     method: 'setWebhook',
     url: webAppUrl
@@ -27,7 +27,9 @@ function doPost(e) {
   const chatId = message.chat.id;
   const text = message.text;
   const userId = message.from.id;
-if (!isCommand(text)) {
+  if (!isCommand(text)) {
+    const helpMessage = "❗ Cú pháp không hợp lệ.\n\n👉 Cú pháp hợp lệ:\n- Ghi chép: `100k thu lương`\n- Ghi chép: `50k chi cà phê`\n- Các lệnh: /start, /report, /undo, ...";
+    sendMessage(chatId, helpMessage);
     return;
   }
 
@@ -41,7 +43,7 @@ if (!isCommand(text)) {
   } else if (text.startsWith("/addusers") || text.startsWith("/delusers")) {
     if (!isAdmin(userId)) {
       sendMessage(chatId, "🚫 Bạn không phải là admin.");
-      return; 
+      return;
     }
     manageUsers(chatId, userId, text);
   } else {
@@ -53,17 +55,17 @@ if (!isCommand(text)) {
       sendMessage(chatId, getGoldPrices());
     } else if (text.startsWith("/undo")) {
       undoLast(chatId);
-    }  else {
+    } else {
       const transactionPattern = /^[0-9]+(k|tr)?\s+(thu|chi)\s+.+/i;
-    if (transactionPattern.test(text)) {
-      handleTransaction(chatId, text);
-    }
+      if (transactionPattern.test(text)) {
+        handleTransaction(chatId, text);
+      }
     }
   }
 }
 function isCommand(text) {
   if (!text) return false;
-  
+
   const validCommands = ["/start", "/addusers", "/delusers", "/report", "/giavang", "/reset", "/reportday", "/undo"];
   if (validCommands.some(cmd => text.startsWith(cmd))) {
     return true;
@@ -78,7 +80,7 @@ function isAdmin(userId) {
 function isAuthorizedUser(userId) {
   const sheet = getOrCreateUserSheet();
   const lastRow = sheet.getLastRow();
-  
+
   if (lastRow < 2) return ADMIN_IDS.includes(String(userId));
   const userIds = sheet.getRange(2, 1, lastRow - 1, 1).getValues().flat().map(String);
   return ADMIN_IDS.includes(String(userId)) || userIds.includes(String(userId));
@@ -89,31 +91,31 @@ function sendStartMessage(chatId) {
 
   const startMessage = `
 *Chào mừng bạn đến với ứng dụng quản lý tài chính cá nhân!*\n\n` +
-      `📌 *Hướng dẫn sử dụng:*\n\n` +
-      `1️⃣ *Thêm giao dịch:*\n   _Nhập theo cú pháp:_ <số tiền> <thu/chi> <mô tả>.\n` +
-        `   *Ví dụ:* \`14629k thu Lương t1\`\n\n` +
-      `2️⃣. *Xem báo cáo:*\n` +
-					`   - \`/giavang\`: Xem giá vàng SJC time life.\n` +
-        `   - \`/report\`: Báo cáo tổng.\n` +
-        `   - \`/report mm/yyyy\`: Báo cáo tháng.\n` +
-        `   - \`/report dd/mm/yyyy\`: Báo cáo tuần (hiển thị tuần có ngày được chọn).\n` +
-					`   - \`/reportday dd/mm/yyyy\`: Báo cáo ngày.\n` +
-        `   - Thêm "az" hoặc "za" sau lệnh để sắp xếp:\n` +
-        `     *Ví dụ:* \`/report az\` , \`/report 01/2024 za, /reportday 04/05/2024 za.\`\n\n` +
-      `3️⃣ *Quản lý người dùng(chỉ Admin):*\n` +
-      `   - \`/addusers <id>\`: _Thêm user._\n` +
-      `   - \`/delusers <id>\`: _Xóa user._\n\n` +
-      `4️⃣ *Khác:*\n` +
-      `   - \`/undo\`: _Xóa giao dịch gần nhất._\n` +
-      `   - \`/reset\`: _Xóa dữ liệu (trừ user)._\n\n` +
-        `💡 *Lưu ý:*\n` +
-        `- Số tiền có thể nhập dạng "1234k" (1,234,000) hoặc "1tr" (1,000,000).\n`
-      ;
+    `📌 *Hướng dẫn sử dụng:*\n\n` +
+    `1️⃣ *Thêm giao dịch:*\n   _Nhập theo cú pháp:_ <số tiền> <thu/chi> <mô tả>.\n` +
+    `   *Ví dụ:* \`14629k thu Lương t1\`\n\n` +
+    `2️⃣. *Xem báo cáo:*\n` +
+    `   - \`/giavang\`: Xem giá vàng SJC time life.\n` +
+    `   - \`/report\`: Báo cáo tổng.\n` +
+    `   - \`/report mm/yyyy\`: Báo cáo tháng.\n` +
+    `   - \`/report dd/mm/yyyy\`: Báo cáo tuần (hiển thị tuần có ngày được chọn).\n` +
+    `   - \`/reportday dd/mm/yyyy\`: Báo cáo ngày.\n` +
+    `   - Thêm "az" hoặc "za" sau lệnh để sắp xếp:\n` +
+    `     *Ví dụ:* \`/report az\` , \`/report 01/2024 za, /reportday 04/05/2024 za.\`\n\n` +
+    `3️⃣ *Quản lý người dùng(chỉ Admin):*\n` +
+    `   - \`/addusers <id>\`: _Thêm user._\n` +
+    `   - \`/delusers <id>\`: _Xóa user._\n\n` +
+    `4️⃣ *Khác:*\n` +
+    `   - \`/undo\`: _Xóa giao dịch gần nhất._\n` +
+    `   - \`/reset\`: _Xóa dữ liệu (trừ user)._\n\n` +
+    `💡 *Lưu ý:*\n` +
+    `- Số tiền có thể nhập dạng "1234k" (1,234,000) hoặc "1tr" (1,000,000).\n`
+    ;
 
   sendMessage(chatId, startMessage);
 }
 
-  function getOrCreateUserSheet() {
+function getOrCreateUserSheet() {
   const ss = SpreadsheetApp.openById(SHEET_ID);
   let usersSheet = ss.getSheetByName("users");
 
@@ -230,8 +232,8 @@ function removeUser(chatId, targetUserId) {
 function handleReport(chatId, text) {
   if (text.startsWith("/reportday")) {
     handleReportDay(chatId, text);
-    return; 
-		}
+    return;
+  }
   const dateRegex = /\d{2}\/\d{4}|\d{2}\/\d{2}\/\d{4}/;
   const dateParam = text.match(dateRegex)?.[0];
   let filter = "all";
@@ -256,7 +258,7 @@ function generateReport(chatId, filter, dateParam, sortOrder) {
     sendMessage(chatId, "⚠️ *Lỗi:* Không tìm thấy sheet `transactions`.");
     return;
   }
-  
+
   const data = sheet.getDataRange().getValues().slice(1);
 
   if (!data.length) {
@@ -291,15 +293,15 @@ function generateReport(chatId, filter, dateParam, sortOrder) {
       hour12: false,
     });
 
-const transaction = `- \`${formatCurrency(amount)}\` : ${desc || "Không có mô tả"} | \`${formattedReportDate}\``;
+    const transaction = `- \`${formatCurrency(amount)}\` : ${desc || "Không có mô tả"} | \`${formattedReportDate}\``;
 
-if (type === "thu") {
-  income += amount;
-  incomeTransactions.push(transaction);
-} else if (type === "chi") {
-  expense += amount;
-  expenseTransactions.push(transaction);
-}
+    if (type === "thu") {
+      income += amount;
+      incomeTransactions.push(transaction);
+    } else if (type === "chi") {
+      expense += amount;
+      expenseTransactions.push(transaction);
+    }
   });
 
   if (!filteredData.length) {
@@ -314,7 +316,7 @@ if (type === "thu") {
       : "";
 
   let reportTitle;
-  switch(filter) {
+  switch (filter) {
     case "all":
       reportTitle = "📊 *BÁO CÁO TỔNG HỢP*";
       break;
@@ -354,7 +356,7 @@ if (type === "thu") {
 function handleReportDay(chatId, text) {
   const dateRegex = /(\d{2})\/(\d{2})\/(\d{4})/;
   const match = text.match(dateRegex);
-  
+
   let targetDate;
 
   if (!match) {
@@ -362,7 +364,7 @@ function handleReportDay(chatId, text) {
   } else {
     const [_, day, month, year] = match;
     targetDate = new Date(year, month - 1, day);
-    
+
     if (isNaN(targetDate.getTime())) {
       sendMessage(chatId, "⚠️ *Ngày không hợp lệ:* Vui lòng kiểm tra lại ngày tháng\nVí dụ: /reportday 15/05/2023");
       return;
@@ -381,9 +383,9 @@ function handleReportDay(chatId, text) {
     sendMessage(chatId, "⚠️ *Lỗi:* Không tìm thấy sheet `transactions`.");
     return;
   }
-  
+
   const data = sheet.getDataRange().getValues().slice(1);
-  
+
   if (!data.length) {
     sendMessage(chatId, "📊 *Thông báo:* Không có dữ liệu giao dịch nào.");
     return;
@@ -449,22 +451,22 @@ function handleReportDay(chatId, text) {
     expenseTransactions.length ? expenseTransactions.join("\n") : "      💬 Không có giao dịch chi tiêu",
     "",
     `💡 *Tổng số giao dịch:* ${filteredData.length}`,
-	sortOrder ? `🔄 *Sắp xếp:* ${sortOrder === "az" ? "Tăng dần (az)" : "Giảm dần (za)"}` : "",
-	].filter(Boolean).join("\n");
+    sortOrder ? `🔄 *Sắp xếp:* ${sortOrder === "az" ? "Tăng dần (az)" : "Giảm dần (za)"}` : "",
+  ].filter(Boolean).join("\n");
 
   sendMessage(chatId, report);
 }
 function resetSheet(chatId) {
   try {
-if (!isAdmin(chatId)) {
+    if (!isAdmin(chatId)) {
       sendMessage(chatId, "🚫 Bạn không phải là admin.");
       return;
-}
+    }
     const sheet = SpreadsheetApp.openById(SHEET_ID).getSheetByName("transactions");
-  if (!sheet) {
-    sendMessage(chatId, "⚠️ *Lỗi:* Không tìm thấy sheet `transactions`.");
-    return;
-}
+    if (!sheet) {
+      sendMessage(chatId, "⚠️ *Lỗi:* Không tìm thấy sheet `transactions`.");
+      return;
+    }
     sheet.clear();
     sheet.appendRow(["Thời gian", "Loại", "Số tiền", "Mô tả"]);
     sendMessage(chatId, "✅ *Đã xóa toàn bộ dữ liệu.*", true);
@@ -476,10 +478,10 @@ if (!isAdmin(chatId)) {
 function undoLast(chatId) {
   try {
     const sheet = SpreadsheetApp.openById(SHEET_ID).getSheetByName("transactions");
-  if (!sheet) {
-    sendMessage(chatId, "⚠️ *Lỗi:* Không tìm thấy sheet `transactions`.");
-    return;
-}
+    if (!sheet) {
+      sendMessage(chatId, "⚠️ *Lỗi:* Không tìm thấy sheet `transactions`.");
+      return;
+    }
     const lastRow = sheet.getLastRow();
     if (lastRow > 1) {
       sheet.deleteRow(lastRow);
@@ -541,7 +543,7 @@ function sendMessage(chatId, text) {
     UrlFetchApp.fetch(`${API_URL}/sendMessage`, {
       method: "post",
       contentType: "application/json",
-      payload: JSON.stringify({ chat_id: chatId, text, parse_mode: "Markdown"}),
+      payload: JSON.stringify({ chat_id: chatId, text, parse_mode: "Markdown" }),
     });
   } else {
     const parts = splitMessage(text, MAX_MESSAGE_LENGTH);
@@ -549,7 +551,7 @@ function sendMessage(chatId, text) {
       UrlFetchApp.fetch(`${API_URL}/sendMessage`, {
         method: "post",
         contentType: "application/json",
-        payload: JSON.stringify({ chat_id: chatId, text: part, parse_mode: "Markdown"}),
+        payload: JSON.stringify({ chat_id: chatId, text: part, parse_mode: "Markdown" }),
       });
     });
   }
@@ -582,27 +584,27 @@ function getGoldPrices() {
   const data = sheet.getRange("A1:E25").getValues();
 
   let report = `*🔔 Giá Vàng SJC 🔔*\n`;
-		   report += `${data[0][0]}\n`;
+  report += `${data[0][0]}\n`;
   let currentRegion = '';
 
   for (let i = 2; i < data.length; i++) {
     const [regionCell, type, buy, sell] = data[i];
 
-    
+
     if (regionCell && regionCell !== currentRegion) {
       currentRegion = regionCell;
       report += `\n*🏷️${currentRegion}*\n`;
     }
 
     if (type && buy && sell) {
-		 const buyPrice = buy.split('\n')[0];
-    const sellPrice = sell.split('\n')[0];
-		const buyDiff = buy.split('\n')[1] || '';
-		const sellDiff = sell.split('\n')[1] || '';
-    report += `- *${type}*\n`;
-    report += `    • Mua vào: ${buyPrice} ${buyDiff}\n`;
-    report += `    • Bán ra: ${sellPrice} ${sellDiff}\n`;
-     
+      const buyPrice = buy.split('\n')[0];
+      const sellPrice = sell.split('\n')[0];
+      const buyDiff = buy.split('\n')[1] || '';
+      const sellDiff = sell.split('\n')[1] || '';
+      report += `- *${type}*\n`;
+      report += `    • Mua vào: ${buyPrice} ${buyDiff}\n`;
+      report += `    • Bán ra: ${sellPrice} ${sellDiff}\n`;
+
     }
   }
 
