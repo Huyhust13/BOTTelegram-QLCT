@@ -608,3 +608,30 @@ function getGoldPrices() {
 
   return report.trim();
 }
+
+function sendReminderIfNoTransaction() {
+  const sheet = SpreadsheetApp.openById(SHEET_ID).getSheetByName("transactions");
+  if (!sheet) return;
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  // today.setDate(today.getDate() - 1);
+
+  const data = sheet.getDataRange().getValues().slice(1);
+  const hasTransactionToday = data.some(([time]) => {
+    const date = new Date(time);
+    date.setHours(0, 0, 0, 0);
+    return date.getTime() === today.getTime();
+  });
+
+  if (hasTransactionToday) return;
+
+  // Gửi nhắc nhở cho admin và user đã được thêm
+  const userSheet = getOrCreateUserSheet();
+  const userIds = userSheet.getRange(2, 1, userSheet.getLastRow() - 1, 1).getValues().flat().map(String);
+  const allRecipients = [...new Set([...ADMIN_IDS, ...userIds])];
+
+  allRecipients.forEach(userId => {
+    sendMessage(userId, "🔔 Nhắc nhở: Hôm nay bạn chưa ghi chép giao dịch nào. Hãy ghi lại chi tiêu hoặc thu nhập nhé!");
+  });
+}
